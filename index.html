@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Extreme Kids - Braki Magazynowe</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Fredoka dla przyjaznego, energetycznego stylu sali zabaw -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        brandBlue: '#0284C7',
+                        brandBlueDark: '#0369A1',
+                        brandOrange: '#F97316',
+                        brandOrangeDark: '#EA580C',
+                        brandYellow: '#FACC15',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ukrycie paska przewijania dla paska kategorii */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Zapobieganie przypadkowemu zaznaczaniu tekstu przy szybkim klikaniu + / - */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Animacja pojawiania się powiadomienia toast */
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased pb-32">
+
+    <!-- Nagłówek Aplikacji -->
+    <header class="bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-3xl mx-auto px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <!-- Ikona / Logo Extreme Kids -->
+                    <div class="w-11 h-11 rounded-2xl bg-orange-500 flex items-center justify-center shadow-inner border-2 border-white/30 shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-display text-xl sm:text-2xl font-bold tracking-wide leading-tight">
+                            Extreme <span class="text-amber-300">Kids</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-sky-100 font-medium">Zgłaszanie braków • Recepcja</p>
+                    </div>
+                </div>
+
+                <!-- Przycisk dodawania nowego produktu -->
+                <button onclick="openAddModal()" class="bg-white/15 hover:bg-white/25 active:scale-95 transition text-white px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 border border-white/25 shadow-sm">
+                    <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Nowy produkt</span>
+                </button>
+            </div>
+
+            <!-- Wyszukiwarka -->
+            <div class="mt-3.5 relative">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    oninput="handleSearch(this.value)"
+                    placeholder="Szukaj produktu (np. Kubuś, kawa, świeczki)..." 
+                    class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white text-slate-800 placeholder-slate-400 text-sm sm:text-base font-medium shadow-inner focus:outline-none focus:ring-2 focus:ring-orange-400"
+                >
+                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pasek Kategorii (przewijany poziomo na telefonie) -->
+        <div class="bg-white text-slate-700 border-b border-slate-200">
+            <div id="categoryTabs" class="max-w-3xl mx-auto px-4 py-2.5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <!-- Zakładki generowane dynamicznie przez JS -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Główna zawartość: Lista produktów -->
+    <main class="max-w-3xl mx-auto px-4 pt-4">
+        <!-- Info o zapisie automatycznym -->
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-3 px-1">
+            <span id="filterStatusText">Wszystkie kategorie</span>
+            <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                Zapisano automatycznie
+            </span>
+        </div>
+
+        <!-- Kontener na kafelki produktów -->
+        <div id="productsContainer" class="space-y-6">
+            <!-- Produkty generowane dynamicznie -->
+        </div>
+
+        <!-- Komunikat gdy brak wyników wyszukiwania -->
+        <div id="emptyState" class="hidden text-center py-12 px-4 bg-white rounded-2xl shadow-sm border border-slate-200 mt-4">
+            <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">Nie znaleziono takiego produktu</h3>
+            <p class="text-sm text-slate-500 mt-1 mb-4">Możesz dodać go do listy jednym kliknięciem.</p>
+            <button onclick="openAddModalWithSearch()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl shadow-sm transition active:scale-95">
+                + Dodaj ten produkt do listy
+            </button>
+        </div>
+    </main>
+
+    <!-- Dolny pasek podsumowania (Sticky Footer) -->
+    <div class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-30">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div id="totalBadge" class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 font-display text-xl font-bold flex items-center justify-center transition-colors">
+                    0
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Zgłoszone braki</p>
+                    <p id="summarySubtitle" class="text-sm sm:text-base font-bold text-slate-700">Lista jest pusta</p>
+                </div>
+            </div>
+
+            <button 
+                id="openSummaryBtn" 
+                onclick="openSummaryModal()" 
+                disabled
+                class="bg-slate-300 text-slate-500 cursor-not-allowed font-bold px-4 sm:px-6 py-3.5 rounded-2xl text-sm sm:text-base shadow-sm transition-all flex items-center gap-2 shrink-0"
+            >
+                <span>Wyślij do Menadżera</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 1: Podsumowanie i wysyłka do Menadżera -->
+    <div id="summaryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <!-- Nagłówek modala -->
+            <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-4 text-white flex items-center justify-between">
+                <div>
+                    <h2 class="font-display text-xl font-bold">Lista braków dla Menadżera</h2>
+                    <p id="modalDateTime" class="text-xs text-orange-100 font-medium mt-0.5"></p>
+                </div>
+                <button onclick="closeSummaryModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Treść modala -->
+            <div class="p-5 overflow-y-auto space-y-4">
+                <!-- Pole na imię pracownika -->
+                <div>
+                    <label for="staffNameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                        Kto zgłasza? (Twoje imię)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="staffNameInput" 
+                        oninput="updateFormattedReport()"
+                        placeholder="np. Kasia (Recepcja)" 
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none text-sm font-medium"
+                    >
+                </div>
+
+                <!-- Podgląd wygenerowanej listy -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Gotowa wiadomość do wysłania</span>
+                        <span id="modalItemsCount" class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md"></span>
+                    </div>
+                    <textarea 
+                        id="reportPreviewText" 
+                        readonly 
+                        rows="8" 
+                        class="w-full p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 font-mono text-xs sm:text-sm leading-relaxed focus:outline-none resize-none"
+                    ></textarea>
+                </div>
+
+                <!-- Przyciski akcji -->
+                <div class="space-y-2.5 pt-1">
+                    <!-- Kopiuj na WhatsApp / Messenger -->
+                    <button onclick="copyReportToClipboard()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2.5 text-sm sm:text-base">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                        </svg>
+                        <span>Kopiuj listę (WhatsApp / Messenger)</span>
+                    </button>
+
+                    <!-- Wyślij e-mail -->
+                    <button onclick="sendReportByEmail()" class="w-full bg-sky-600 hover:bg-sky-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2.5 text-sm sm:text-base">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Wyślij e-mail do Menadżera</span>
+                    </button>
+
+                    <!-- Wyczyść listę po wysłaniu (z potwierdzeniem dwustopniowym bez alert/confirm) -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <button id="resetListBtn" onclick="handleResetClick()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span id="resetBtnText">Wyczyść listę po wysłaniu</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Dodawanie nowego produktu -->
+    <div id="addProductModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-sky-600 px-5 py-4 text-white flex items-center justify-between">
+                <h2 class="font-display text-xl font-bold">Dodaj nowy produkt</h2>
+                <button onclick="closeAddModal()" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <form onsubmit="saveNewProduct(event)" class="p-5 space-y-4">
+                <div>
+                    <label for="newProductName" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                        Nazwa produktu *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="newProductName" 
+                        required
+                        placeholder="np. Soczek Tymbark jabłko-mięta" 
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 outline-none text-sm font-medium"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="newProductCategory" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Kategoria
+                        </label>
+                        <select id="newProductCategory" class="w-full px-3 py-3 rounded-xl border border-slate-300 bg-white focus:border-sky-500 outline-none text-sm font-medium">
+                            <option value="Napoje i Soki">Napoje i Soki</option>
+                            <option value="Słodycze i Przekąski">Słodycze i Przekąski</option>
+                            <option value="Kawa i Herbata">Kawa i Herbata</option>
+                            <option value="Chemia i Higiena">Chemia i Higiena</option>
+                            <option value="Wyposażenie Urodzinowe">Wyposażenie Urodzinowe</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="newProductUnit" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                            Jednostka
+                        </label>
+                        <select id="newProductUnit" class="w-full px-3 py-3 rounded-xl border border-slate-300 bg-white focus:border-sky-500 outline-none text-sm font-medium">
+                            <option value="szt.">szt.</option>
+                            <option value="zgrzewka">zgrzewka</option>
+                            <option value="op.">opakowanie (op.)</option>
+                            <option value="kg">kg</option>
+                            <option value="rolka">rolka</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="newProductQty" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                        Ile brakuje od razu dopisać?
+                    </label>
+                    <input 
+                        type="number" 
+                        id="newProductQty" 
+                        min="0" 
+                        max="999" 
+                        value="1" 
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-sky-500 outline-none text-sm font-bold"
+                    >
+                </div>
+
+                <div class="pt-2 flex gap-2.5">
+                    <button type="button" onclick="closeAddModal()" class="flex-1 py-3 px-4 rounded-xl border border-slate-300 text-slate-600 font-semibold text-sm hover:bg-slate-50">
+                        Anuluj
+                    </button>
+                    <button type="submit" class="flex-1 py-3 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-md">
+                        Dodaj do listy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Powiadomienie Toast (zamiast alert()) -->
+    <div id="toastContainer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none hidden">
+        <div id="toastMessage" class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2.5 toast-enter whitespace-nowrap">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span id="toastText">Skopiowano do schowka!</span>
+        </div>
+    </div>
+
+    <script>
+        // Domyślna baza produktów dla sali zabaw Extreme Kids
+        const DEFAULT_PRODUCTS = [
+            // Napoje i Soki
+            { id: 'p1', name: 'Soki Kubuś Play / Waterrr', category: 'Napoje i Soki', unit: 'zgrzewka', qty: 0 },
+            { id: 'p2', name: 'Woda niegazowana 0.5l', category: 'Napoje i Soki', unit: 'zgrzewka', qty: 0 },
+            { id: 'p3', name: 'Woda gazowana 0.5l', category: 'Napoje i Soki', unit: 'zgrzewka', qty: 0 },
+            { id: 'p4', name: 'Soki w kartoniku ze słomką (200ml)', category: 'Napoje i Soki', unit: 'zgrzewka', qty: 0 },
+            { id: 'p5', name: 'Coca-Cola / Sprite / Fanta (puszka/butelka)', category: 'Napoje i Soki', unit: 'zgrzewka', qty: 0 },
+            { id: 'p6', name: 'Mleko 3.2% (do kawy)', category: 'Napoje i Soki', unit: 'szt.', qty: 0 },
+
+            // Słodycze i Przekąski
+            { id: 'p7', name: 'Ciastka Oreo / Hit', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+            { id: 'p8', name: 'Paluszki słone / Lajkonik', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+            { id: 'p9', name: 'Chrupki kukurydziane (Flipsy)', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+            { id: 'p10', name: 'Żelki Haribo / owocowe', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+            { id: 'p11', name: 'Lizaki owocowe (słoik / paczka)', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+            { id: 'p12', name: 'Wafelki Prince Polo / Princessa', category: 'Słodycze i Przekąski', unit: 'op.', qty: 0 },
+
+            // Kawa i Herbata
+            { id: 'p13', name: 'Kawa ziarnista (1kg)', category: 'Kawa i Herbata', unit: 'op.', qty: 0 },
+            { id: 'p14', name: 'Herbata czarna ekspresowa', category: 'Kawa i Herbata', unit: 'op.', qty: 0 },
+            { id: 'p15', name: 'Herbata owocowa (malina / wieloowocowa)', category: 'Kawa i Herbata', unit: 'op.', qty: 0 },
+            { id: 'p16', name: 'Cukier biały (1kg) / saszetki', category: 'Kawa i Herbata', unit: 'op.', qty: 0 },
+            { id: 'p17', name: 'Mieszadełka drewniane do kawy', category: 'Kawa i Herbata', unit: 'op.', qty: 0 },
+
+            // Chemia i Higiena
+            { id: 'p18', name: 'Ręczniki papierowe (duża rola)', category: 'Chemia i Higiena', unit: 'rolka', qty: 0 },
+            { id: 'p19', name: 'Papier toaletowy (jumbo)', category: 'Chemia i Higiena', unit: 'rolka', qty: 0 },
+            { id: 'p20', name: 'Mydło w płynie (zapas 5L)', category: 'Chemia i Higiena', unit: 'szt.', qty: 0 },
+            { id: 'p21', name: 'Worki na śmieci 120L (mocne)', category: 'Chemia i Higiena', unit: 'rolka', qty: 0 },
+            { id: 'p22', name: 'Worki na śmieci 60L', category: 'Chemia i Higiena', unit: 'rolka', qty: 0 },
+            { id: 'p23', name: 'Płyn do mycia podłóg / szyb', category: 'Chemia i Higiena', unit: 'szt.', qty: 0 },
+
+            // Wyposażenie Urodzinowe
+            { id: 'p24', name: 'Kubeczki papierowe urodzinowe', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 },
+            { id: 'p25', name: 'Talerzyki papierowe kolorowe', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 },
+            { id: 'p26', name: 'Świeczki urodzinowe (klasyczne / cyferki)', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 },
+            { id: 'p27', name: 'Serwetki papierowe kolorowe', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 },
+            { id: 'p28', name: 'Słomki papierowe do napojów', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 },
+            { id: 'p29', name: 'Opaski / pieczątki wejściowe dla dzieci', category: 'Wyposażenie Urodzinowe', unit: 'op.', qty: 0 }
+        ];
+
+        const CATEGORIES = [
+            'Wszystkie',
+            'Tylko braki',
+            'Napoje i Soki',
+            'Słodycze i Przekąski',
+            'Kawa i Herbata',
+            'Chemia i Higiena',
+            'Wyposażenie Urodzinowe'
+        ];
+
+        const STORAGE_KEY = 'extreme_kids_inventory_v1';
+        const STAFF_NAME_KEY = 'extreme_kids_staff_name';
+
+        let products = [];
+        let activeCategory = 'Wszystkie';
+        let searchQuery = '';
+        let resetConfirmTimeout = null;
+        let isResetConfirming = false;
+
+        // Inicjalizacja aplikacji po załadowaniu strony
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderCategoryTabs();
+            renderProducts();
+            updateFooterSummary();
+        });
+
+        // Wczytanie danych z localStorage z obsługą błędów
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    products = JSON.parse(saved);
+                } else {
+                    products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+                    saveToStorage();
+                }
+
+                const savedStaff = localStorage.getItem(STAFF_NAME_KEY);
+                if (savedStaff) {
+                    document.getElementById('staffNameInput').value = savedStaff;
+                }
+            } catch (e) {
+                console.error('Błąd odczytu localStorage:', e);
+                products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+            }
+        }
+
+        // Zapis danych do localStorage
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+            } catch (e) {
+                console.error('Błąd zapisu localStorage:', e);
+            }
+        }
+
+        // Renderowanie zakładek kategorii
+        function renderCategoryTabs() {
+            const container = document.getElementById('categoryTabs');
+            const missingCount = products.filter(p => p.qty > 0).length;
+
+            container.innerHTML = CATEGORIES.map(cat => {
+                const isActive = activeCategory === cat;
+                let badge = '';
+                
+                if (cat === 'Tylko braki' && missingCount > 0) {
+                    badge = `<span class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${isActive ? 'bg-white text-orange-600' : 'bg-orange-500 text-white'} font-bold">${missingCount}</span>`;
+                }
+
+                const activeClasses = cat === 'Tylko braki' 
+                    ? 'bg-orange-500 text-white shadow-sm' 
+                    : 'bg-sky-600 text-white shadow-sm';
+                const inactiveClasses = 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+
+                return `
+                    <button 
+                        onclick="selectCategory('${cat}')"
+                        class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition active:scale-95 flex items-center ${isActive ? activeClasses : inactiveClasses}"
+                    >
+                        <span>${cat}</span>
+                        ${badge}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // Zmiana aktywnej kategorii
+        function selectCategory(category) {
+            activeCategory = category;
+            document.getElementById('filterStatusText').textContent = 
+                category === 'Wszystkie' ? 'Wszystkie kategorie' : `Filtr: ${category}`;
+            renderCategoryTabs();
+            renderProducts();
+        }
+
+        // Obsługa wyszukiwarki
+        function handleSearch(value) {
+            searchQuery = value.trim().toLowerCase();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (searchQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderProducts();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            handleSearch('');
+            input.focus();
+        }
+
+        // Zmiana ilości brakującego produktu (+ / -)
+        function updateQuantity(productId, delta) {
+            const index = products.findIndex(p => p.id === productId);
+            if (index === -1) return;
+
+            const newQty = Math.max(0, products[index].qty + delta);
+            products[index].qty = newQty;
+
+            saveToStorage();
+            renderCategoryTabs();
+            renderProducts();
+            updateFooterSummary();
+        }
+
+        // Renderowanie kafelków produktów pogrupowanych w kategorie
+        function renderProducts() {
+            const container = document.getElementById('productsContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            // Filtrowanie produktów
+            let filtered = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery) || p.category.toLowerCase().includes(searchQuery);
+                if (!matchesSearch) return false;
+
+                if (activeCategory === 'Wszystkie') return true;
+                if (activeCategory === 'Tylko braki') return p.qty > 0;
+                return p.category === activeCategory;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            // Grupowanie przefiltrowanych produktów po kategorii
+            const grouped = {};
+            filtered.forEach(p => {
+                if (!grouped[p.category]) grouped[p.category] = [];
+                grouped[p.category].push(p);
+            });
+
+            // Generowanie HTML dla każdej grupy
+            container.innerHTML = Object.keys(grouped).map(categoryName => {
+                const itemsHtml = grouped[categoryName].map(item => {
+                    const hasMissing = item.qty > 0;
+                    const cardBorder = hasMissing 
+                        ? 'border-orange-400 bg-orange-50/40 ring-1 ring-orange-200' 
+                        : 'border-slate-200 bg-white';
+                    const counterStyle = hasMissing 
+                        ? 'text-orange-600 font-extrabold scale-105' 
+                        : 'text-slate-400 font-bold';
+
+                    return `
+                        <div class="p-3.5 sm:p-4 rounded-2xl border ${cardBorder} shadow-2xs flex items-center justify-between gap-3 transition-all">
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-semibold text-slate-800 text-sm sm:text-base leading-snug break-words">
+                                    ${escapeHtml(item.name)}
+                                </h3>
+                                <span class="inline-block mt-1 text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    Jednostka: ${escapeHtml(item.unit)}
+                                </span>
+                            </div>
+
+                            <!-- Przyciski sterowania ilością (- licznik +) -->
+                            <div class="flex items-center gap-2 sm:gap-3 shrink-0 no-select">
+                                <button 
+                                    onclick="updateQuantity('${item.id}', -1)"
+                                    aria-label="Zmniejsz ilość"
+                                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-xl transition active:scale-90 ${item.qty > 0 ? 'bg-slate-200 hover:bg-slate-300 text-slate-700' : 'bg-slate-100 text-slate-300'}"
+                                >
+                                    −
+                                </button>
+
+                                <div class="w-9 sm:w-11 text-center font-display text-xl sm:text-2xl transition-transform ${counterStyle}">
+                                    ${item.qty}
+                                </div>
+
+                                <button 
+                                    onclick="updateQuantity('${item.id}', 1)"
+                                    aria-label="Zwiększ ilość"
+                                    class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white flex items-center justify-center font-bold text-xl shadow-sm transition active:scale-90"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <section>
+                        <div class="flex items-center gap-2 mb-2.5 px-1">
+                            <span class="w-2 h-5 rounded-full bg-orange-500"></span>
+                            <h2 class="font-display text-base sm:text-lg font-bold text-slate-700">
+                                ${escapeHtml(categoryName)}
+                            </h2>
+                        </div>
+                        <div class="space-y-2.5">
+                            ${itemsHtml}
+                        </div>
+                    </section>
+                `;
+            }).join('');
+        }
+
+        // Aktualizacja dolnego paska podsumowania
+        function updateFooterSummary() {
+            const missingProducts = products.filter(p => p.qty > 0);
+            const totalPositions = missingProducts.length;
+            const totalUnits = missingProducts.reduce((sum, p) => sum + p.qty, 0);
+
+            const badge = document.getElementById('totalBadge');
+            const subtitle = document.getElementById('summarySubtitle');
+            const sendBtn = document.getElementById('openSummaryBtn');
+
+            badge.textContent = totalPositions;
+
+            if (totalPositions > 0) {
+                badge.className = 'w-12 h-12 rounded-2xl bg-orange-500 text-white font-display text-xl font-bold flex items-center justify-center shadow-sm transition-colors';
+                subtitle.textContent = `${totalPositions} poz. (łącznie ${totalUnits} szt./op.)`;
+                subtitle.className = 'text-sm sm:text-base font-bold text-slate-800';
+
+                sendBtn.disabled = false;
+                sendBtn.className = 'bg-orange-500 hover:bg-orange-600 active:scale-95 text-white cursor-pointer font-bold px-4 sm:px-6 py-3.5 rounded-2xl text-sm sm:text-base shadow-md transition-all flex items-center gap-2 shrink-0';
+            } else {
+                badge.className = 'w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 font-display text-xl font-bold flex items-center justify-center transition-colors';
+                subtitle.textContent = 'Lista jest pusta';
+                subtitle.className = 'text-sm sm:text-base font-bold text-slate-500';
+
+                sendBtn.disabled = true;
+                sendBtn.className = 'bg-slate-200 text-slate-400 cursor-not-allowed font-bold px-4 sm:px-6 py-3.5 rounded-2xl text-sm sm:text-base transition-all flex items-center gap-2 shrink-0';
+            }
+        }
+
+        // Otwieranie modala z podsumowaniem
+        function openSummaryModal() {
+            const missing = products.filter(p => p.qty > 0);
+            if (missing.length === 0) return;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('modalDateTime').textContent = `Data wygenerowania: ${dateStr}, godz. ${timeStr}`;
+            document.getElementById('modalItemsCount').textContent = `Pozycji: ${missing.length}`;
+
+            // Reset przycisku czyszczenia przy otwarciu
+            resetConfirmState();
+            updateFormattedReport();
+
+            document.getElementById('summaryModal').classList.remove('hidden');
+        }
+
+        function closeSummaryModal() {
+            document.getElementById('summaryModal').classList.add('hidden');
+        }
+
+        // Generowanie czytelnego tekstu raportu dla Menadżera
+        function updateFormattedReport() {
+            const staffInput = document.getElementById('staffNameInput').value.trim();
+            try {
+                localStorage.setItem(STAFF_NAME_KEY, staffInput);
+            } catch (e) {}
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+            const missing = products.filter(p => p.qty > 0);
+            
+            // Grupowanie braków kategoriami dla czytelności
+            const grouped = {};
+            missing.forEach(item => {
+                if (!grouped[item.category]) grouped[item.category] = [];
+                grouped[item.category].push(item);
+            });
+
+            let report = `📦 BRAKI MAGAZYNOWE - EXTREME KIDS\n`;
+            report += `📅 Data: ${dateStr} | ⏰ Godz.: ${timeStr}\n`;
+            if (staffInput) {
+                report += `👤 Zgłasza: ${staffInput}\n`;
+            }
+            report += `----------------------------------\n`;
+
+            Object.keys(grouped).forEach(cat => {
+                report += `\n🔹 ${cat.toUpperCase()}:\n`;
+                grouped[cat].forEach(item => {
+                    report += `• ${item.name} — ${item.qty} ${item.unit}\n`;
+                });
+            });
+
+            report += `\n----------------------------------\n`;
+            report += `Łącznie pozycji do zamówienia: ${missing.length}`;
+
+            document.getElementById('reportPreviewText').value = report;
+        }
+
+        // Kopiowanie listy do schowka (zgodnie z wytycznymi document.execCommand('copy'))
+        function copyReportToClipboard() {
+            const textarea = document.getElementById('reportPreviewText');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Skopiowano listę! Wklej na WhatsApp / Messenger');
+            } catch (err) {
+                showToast('Nie udało się skopiować automatycznie');
+            }
+        }
+
+        // Otwieranie klienta pocztowego (mailto:)
+        function sendReportByEmail() {
+            const reportText = document.getElementById('reportPreviewText').value;
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            const subject = encodeURIComponent(`Extreme Kids - Braki magazynowe (${dateStr})`);
+            const body = encodeURIComponent(reportText);
+
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        // Dwustopniowe czyszczenie listy po wysłaniu (bez natywnego confirm())
+        function handleResetClick() {
+            const btn = document.getElementById('resetListBtn');
+            const btnText = document.getElementById('resetBtnText');
+
+            if (!isResetConfirming) {
+                isResetConfirming = true;
+                btn.className = 'w-full bg-rose-600 text-white font-bold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm shadow-md';
+                btnText.textContent = 'Kliknij ponownie, aby wyzerować liczniki!';
+
+                resetConfirmTimeout = setTimeout(() => {
+                    resetConfirmState();
+                }, 4000);
+            } else {
+                clearTimeout(resetConfirmTimeout);
+                products.forEach(p => p.qty = 0);
+                saveToStorage();
+                renderCategoryTabs();
+                renderProducts();
+                updateFooterSummary();
+                closeSummaryModal();
+                showToast('Lista braków została wyczyszczona!');
+                resetConfirmState();
+            }
+        }
+
+        function resetConfirmState() {
+            isResetConfirming = false;
+            const btn = document.getElementById('resetListBtn');
+            const btnText = document.getElementById('resetBtnText');
+            if (btn && btnText) {
+                btn.className = 'w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm';
+                btnText.textContent = 'Wyczyść listę po wysłaniu';
+            }
+        }
+
+        // Modal dodawania nowego produktu
+        function openAddModal() {
+            document.getElementById('newProductName').value = '';
+            document.getElementById('newProductQty').value = '1';
+            document.getElementById('addProductModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('newProductName').focus(), 100);
+        }
+
+        function openAddModalWithSearch() {
+            const currentSearch = document.getElementById('searchInput').value.trim();
+            openAddModal();
+            if (currentSearch) {
+                document.getElementById('newProductName').value = currentSearch;
+            }
+        }
+
+        function closeAddModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+        }
+
+        function saveNewProduct(event) {
+            event.preventDefault();
+            const name = document.getElementById('newProductName').value.trim();
+            const category = document.getElementById('newProductCategory').value;
+            const unit = document.getElementById('newProductUnit').value;
+            const qty = Math.max(0, parseInt(document.getElementById('newProductQty').value, 10) || 0);
+
+            if (!name) return;
+
+            const newProduct = {
+                id: 'custom_' + Date.now(),
+                name: name,
+                category: category,
+                unit: unit,
+                qty: qty
+            };
+
+            products.unshift(newProduct);
+            saveToStorage();
+            
+            // Wyczyść wyszukiwarkę i pokaż kategorię, do której dodano produkt
+            clearSearch();
+            selectCategory('Wszystkie');
+            updateFooterSummary();
+            closeAddModal();
+            showToast(`Dodano: ${name}`);
+        }
+
+        // Wyświetlanie powiadomienia Toast
+        let toastTimer = null;
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const textEl = document.getElementById('toastText');
+            
+            textEl.textContent = message;
+            container.classList.remove('hidden');
+
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                container.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Zabezpieczenie przed XSS
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
