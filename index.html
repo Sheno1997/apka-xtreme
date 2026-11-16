@@ -5,40 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XtremeKids – Braki Magazynowe</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        orange: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            700: '#c2410c',
-                            800: '#9a3412',
-                            900: '#7c2d12',
-                        }
-                    }
-                }
-            }
+    <style>
+        /* Ukrycie paska przewijania dla zakładek kategorii */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-    </script>
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 antialiased pb-32">
+<body class="bg-slate-50 text-slate-800 antialiased pb-32">
 
-    <!-- Nagłówek -->
-    <header class="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-20 shadow-lg">
-        <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+    <!-- Nagłówek w kolorach logo XtremeKids -->
+    <header class="bg-white border-b-4 border-orange-500 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-wider text-orange-500">XtremeKids</span>
-                <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                <div class="flex items-center gap-0.5 font-black tracking-tight text-lg leading-none">
+                    <span class="text-orange-500">XTREME</span>
+                    <span class="text-red-600">K</span><span class="text-amber-400">I</span><span class="text-green-600">D</span><span class="text-blue-600">S</span>
+                </div>
+                <h1 class="text-base font-bold text-slate-700 mt-0.5 flex items-center gap-1.5">
                     📦 Braki Magazynowe
                 </h1>
             </div>
-            <button onclick="resetAllQuantities()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium px-3 py-2 rounded-xl transition border border-zinc-700">
+            <button onclick="resetAllQuantities()" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 font-semibold px-3 py-2 rounded-xl transition border border-slate-200">
                 Wyczyść wszystko
             </button>
+        </div>
+
+        <!-- Pasek szybkiego wyboru kategorii -->
+        <div class="max-w-3xl mx-auto px-4 pb-3 flex items-center gap-2 overflow-x-auto no-scrollbar" id="categoryTabs">
+            <!-- Generowane przez JS -->
         </div>
     </header>
 
@@ -46,20 +45,23 @@
     <main class="max-w-3xl mx-auto px-4 pt-4">
 
         <!-- Wyszukiwarka -->
-        <div class="mb-6">
+        <div class="mb-4">
             <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-500">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </span>
-                <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Szukaj produktu (np. frytki, sok, woda)..." class="w-full pl-11 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition text-sm">
+                <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Szukaj produktu (np. frytki, skarpety, sernik, cola)..." class="w-full pl-11 pr-10 py-3 bg-white border-2 border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 transition text-sm shadow-sm">
+                <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
         </div>
 
         <!-- Informacja o zapisie -->
-        <div class="flex items-center justify-between text-xs text-zinc-400 mb-3 px-1">
-            <span id="statusText">Wszystkie produkty</span>
-            <span class="flex items-center gap-1 text-orange-500 font-medium">
-                <span class="w-2 h-2 rounded-full bg-orange-500 inline-block animate-pulse"></span>
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-3 px-1">
+            <span id="statusText" class="font-medium">Wszystkie kategorie</span>
+            <span class="flex items-center gap-1.5 text-green-600 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-green-500 inline-block animate-pulse"></span>
                 Zapisywane automatycznie
             </span>
         </div>
@@ -70,13 +72,13 @@
         </div>
 
         <!-- Komunikat gdy brak wyników wyszukiwania -->
-        <div id="emptyState" class="hidden text-center py-12 px-4 bg-zinc-900 border border-zinc-800 rounded-2xl mt-4">
-            <div class="w-16 h-16 bg-orange-500/10 text-orange-500 flex items-center justify-center rounded-full mx-auto mb-3">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div id="emptyState" class="hidden text-center py-12 px-4 bg-white border-2 border-dashed border-slate-200 rounded-3xl mt-4">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 flex items-center justify-center rounded-full mx-auto mb-3 text-2xl">
+                🔍
             </div>
-            <h3 class="text-lg font-bold text-white">Nie znaleziono takiego produktu</h3>
-            <p class="text-sm text-zinc-400 mt-1 mb-4">Możesz dodać go do listy jednym kliknięciem.</p>
-            <button onclick="openAddModalWithSearch()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2.5 rounded-xl transition text-sm">
+            <h3 class="text-lg font-bold text-slate-800">Nie znaleziono takiego produktu</h3>
+            <p class="text-sm text-slate-500 mt-1 mb-4">Możesz dopisać go do listy jednym kliknięciem.</p>
+            <button onclick="openAddModalWithSearch()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm shadow-md shadow-orange-500/20">
                 + Dodaj nowy produkt
             </button>
         </div>
@@ -84,47 +86,52 @@
     </main>
 
     <!-- Pasek akcji na dole -->
-    <div class="fixed bottom-0 left-0 right-0 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 py-3 px-4 z-20 shadow-2xl">
+    <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         <div class="max-w-3xl mx-auto flex items-center justify-between gap-3">
             <div>
-                <span class="text-xs text-zinc-400 block">Zaznaczone braki:</span>
-                <span id="totalItemsCount" class="text-lg font-bold text-orange-500">0 pozycji</span>
+                <span class="text-xs text-slate-500 block font-medium">Zaznaczone braki:</span>
+                <span id="totalItemsCount" class="text-lg font-extrabold text-orange-500">0 poz.</span>
             </div>
-            <button onclick="openSummaryModal()" class="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition flex items-center gap-2 text-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"></path></svg>
-                Generuj listę do wysłania
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold p-3 rounded-xl transition border border-slate-200" title="Dodaj nowy produkt">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+                <button onclick="openSummaryModal()" class="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-orange-500/25 transition flex items-center gap-2 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"></path></svg>
+                    Generuj listę
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- MODAL PODSUMOWANIA -->
-    <div id="summaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
+    <div id="summaryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-200 w-full max-w-lg rounded-3xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center gap-2">
                     📋 Lista braków do zamówienia
                 </h3>
-                <button onclick="closeSummaryModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg">
+                <button onclick="closeSummaryModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
             <div class="mb-4">
-                <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Twoje imię (kto zgłasza):</label>
-                <input type="text" id="reporterName" placeholder="np. Kasia / Bartek" class="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Twoje imię (kto zgłasza):</label>
+                <input type="text" id="reporterName" placeholder="np. Kasia / Bartek" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500">
             </div>
 
-            <div class="flex-1 overflow-y-auto bg-zinc-950 border border-zinc-800 rounded-2xl p-4 mb-4">
-                <pre id="summaryTextOutput" class="text-xs text-zinc-300 font-mono whitespace-pre-wrap"></pre>
+            <div class="flex-1 overflow-y-auto bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
+                <pre id="summaryTextOutput" class="text-xs text-slate-700 font-mono whitespace-pre-wrap leading-relaxed"></pre>
             </div>
 
             <div class="space-y-2">
-                <button onclick="copyToClipboard()" id="copyBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2">
+                <button onclick="copyToClipboard()" id="copyBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-500/20">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                    Skopiuj listę do schowka
+                    Skopiuj listę na WhatsApp / Messenger
                 </button>
                 <div id="resetConfirmContainer" class="hidden">
-                    <button onclick="executeResetAfterSend()" id="resetListBtn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-rose-400 font-semibold py-3 px-4 rounded-xl transition text-sm border border-zinc-700">
+                    <button onclick="executeResetAfterSend()" id="resetListBtn" class="w-full bg-slate-100 hover:bg-red-50 text-red-600 font-bold py-3 px-4 rounded-xl transition text-sm border border-slate-200">
                         <span id="resetText">Wyczyść listę po wysłaniu</span>
                     </button>
                 </div>
@@ -133,31 +140,37 @@
     </div>
 
     <!-- MODAL DODAWANIA PRODUKTU -->
-    <div id="addProductModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-3xl p-6 shadow-2xl">
+    <div id="addProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-white">Dodaj nowy produkt</h3>
-                <button onclick="closeAddModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg">
+                <h3 class="text-lg font-extrabold text-slate-800">Dodaj nowy produkt</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Nazwa produktu:</label>
-                    <input type="text" id="newProductName" placeholder="np. Syrop malinowy" class="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nazwa produktu:</label>
+                    <input type="text" id="newProductName" placeholder="np. Syrop malinowy" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Kategoria:</label>
-                    <select id="newProductCategory" class="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategoria:</label>
+                    <select id="newProductCategory" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500">
                         <option value="MAGAZYN">MAGAZYN</option>
-                        <option value="MROŻONKI">MROŻONKI</option>
+                        <option value="ZAMRAŻARKA">ZAMRAŻARKA</option>
+                        <option value="CIASTA">CIASTA</option>
+                        <option value="KUCHNIA">KUCHNIA</option>
+                        <option value="RECEPCJA">RECEPCJA</option>
+                        <option value="OPAKOWANIA">OPAKOWANIA</option>
+                        <option value="SKARPETY">SKARPETY</option>
+                        <option value="LODY">LODY</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Początkowa ilość braku:</label>
-                    <input type="number" id="newProductQty" value="1" min="1" class="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Początkowa ilość braku:</label>
+                    <input type="number" id="newProductQty" value="1" min="1" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500">
                 </div>
-                <button onclick="addNewProduct()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
+                <button onclick="addNewProduct()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl transition text-sm shadow-md shadow-orange-500/20">
                     Dodaj do listy
                 </button>
             </div>
@@ -166,53 +179,127 @@
 
     <!-- Skrypt logiki aplikacji -->
     <script>
-        let categoriesData = [
+        // Kolory przypisane z logo XtremeKids dla łatwego rozróżniania działów
+        const defaultCategories = [
             {
                 name: "MAGAZYN",
+                badgeColor: "bg-orange-500 text-white",
+                borderColor: "border-t-orange-500",
                 items: [
-                    "ciastka",
-                    "chrupki",
-                    "popcorn",
-                    "paluszki",
-                    "soki pomarańczowe ( w zgrzewkach)",
-                    "to samo ale jabłkowe",
-                    "woda 5L",
-                    "olej",
-                    "cukierki do piniaty"
+                    "Szampan", "Sok pomarańczowy zgrzewka", "Sok jabłkowy zgrzewka",
+                    "Woda 5L", "Ciastka", "Popcorn", "Paluszki", "Chrupki",
+                    "Olej 5L", "Mleko", "Cukierki do Piniaty"
                 ]
             },
             {
-                name: "MROŻONKI",
+                name: "ZAMRAŻARKA",
+                badgeColor: "bg-blue-600 text-white",
+                borderColor: "border-t-blue-600",
                 items: [
-                    "FRYTKI",
-                    "NUGGERSY",
-                    "BATATY",
-                    "CHICKEN FINGERS",
-                    "PINSY",
-                    "MOZZARELLA",
-                    "SZYNKA GOTOWANA"
+                    "Frytki", "nuggetsy", "Chicken Finegrsy", "Bataty",
+                    "Pinsa", "Ser Mozzarela", "bułka hot dog", "parówki"
+                ]
+            },
+            {
+                name: "CIASTA",
+                badgeColor: "bg-amber-400 text-slate-900",
+                borderColor: "border-t-amber-400",
+                items: [
+                    "brownie", "Bistcoft", "KinderCountry", "Sernik Karmelowy",
+                    "Sernik Czekoladowy", "Sernik Basic", "Sernik Mango"
+                ]
+            },
+            {
+                name: "KUCHNIA",
+                badgeColor: "bg-red-600 text-white",
+                borderColor: "border-t-red-600",
+                items: [
+                    "Szynka gotowana", "Szynka prosciutto", "Salami", "Ostre Salami",
+                    "Ser do tostów", "Chleb Tostowy", "Ketchup Tuba", "Sos czosnkowy",
+                    "Polewa Czekoladowa", "Pasata Pomidorowa", "Oliwa z oliwek",
+                    "kukurydza", "Grana Padano", "Cebula", "Mąka do Gofrów",
+                    "Cukier puder", "Bita śmietana", "Pomidorki", "Rukola",
+                    "Zabawki", "Lizaki"
+                ]
+            },
+            {
+                name: "RECEPCJA",
+                badgeColor: "bg-green-600 text-white",
+                borderColor: "border-t-green-600",
+                items: [
+                    "Cola", "Cola Zero", "Tymbark", "Kubuś Watter", "Woda ngaz",
+                    "Woda gaz", "mini woda", "Soczek Kubuś", "Kawa", "Herbata",
+                    "OnLemon", "Syrop do kawy", "Rzeczy do Herbaty Zimowej",
+                    "Wafelki do lodów", "Kubeczki", "Łyżeczki plastikowe",
+                    "Papierowe talerzyki", "papierowe kubeczki", "słodycze johnybee", "Żelki"
+                ]
+            },
+            {
+                name: "OPAKOWANIA",
+                badgeColor: "bg-orange-500 text-white",
+                borderColor: "border-t-orange-500",
+                items: [
+                    "Happy Box", "Duży Box", "Na frytki małe",
+                    "Na frytki Duże", "Do hot doga", "Zastawa urodzinowa"
+                ]
+            },
+            {
+                name: "SKARPETY",
+                badgeColor: "bg-blue-600 text-white",
+                borderColor: "border-t-blue-600",
+                items: ["xs", "s", "m", "L", "xl"]
+            },
+            {
+                name: "LODY",
+                badgeColor: "bg-amber-400 text-slate-900",
+                borderColor: "border-t-amber-400",
+                items: [
+                    "czekolada", "bistcoft", "minecraft", "troll",
+                    "straciatella", "malina", "truskawka", "słony karmel", "piernikowe"
                 ]
             }
         ];
 
+        let categoriesData = JSON.parse(JSON.stringify(defaultCategories));
         let quantities = {};
+        let selectedCategory = 'ALL';
         let isResetConfirming = false;
 
         function loadState() {
-            const saved = localStorage.getItem('xtremekids_quantities_v2');
+            const saved = localStorage.getItem('xtremekids_quantities_v3');
             if (saved) {
                 try { quantities = JSON.parse(saved); } catch(e) { quantities = {}; }
             }
-            const savedCategories = localStorage.getItem('xtremekids_categories_v2');
+            const savedCategories = localStorage.getItem('xtremekids_categories_v3');
             if (savedCategories) {
                 try { categoriesData = JSON.parse(savedCategories); } catch(e) {}
             }
+            updateTotalCount();
         }
 
         function saveState() {
-            localStorage.setItem('xtremekids_quantities_v2', JSON.stringify(quantities));
-            localStorage.setItem('xtremekids_categories_v2', JSON.stringify(categoriesData));
+            localStorage.setItem('xtremekids_quantities_v3', JSON.stringify(quantities));
+            localStorage.setItem('xtremekids_categories_v3', JSON.stringify(categoriesData));
             updateTotalCount();
+        }
+
+        function renderCategoryTabs() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            let html = `<button onclick="selectCategory('ALL')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${selectedCategory === 'ALL' ? 'bg-slate-800 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Wszystkie</button>`;
+
+            categoriesData.forEach(cat => {
+                const isSelected = selectedCategory === cat.name;
+                html += `<button onclick="selectCategory('${cat.name}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${isSelected ? cat.badgeColor + ' shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cat.name}</button>`;
+            });
+
+            tabsContainer.innerHTML = html;
+        }
+
+        function selectCategory(catName) {
+            selectedCategory = catName;
+            document.getElementById('statusText').textContent = catName === 'ALL' ? 'Wszystkie kategorie' : `Kategoria: ${catName}`;
+            renderCategoryTabs();
+            renderProducts(document.getElementById('searchInput').value);
         }
 
         function renderProducts(filter = '') {
@@ -222,30 +309,36 @@
             const lowerFilter = filter.toLowerCase();
 
             categoriesData.forEach(cat => {
+                if (selectedCategory !== 'ALL' && cat.name !== selectedCategory) return;
+
                 const filteredItems = cat.items.filter(item => item.toLowerCase().includes(lowerFilter));
                 if (filteredItems.length === 0) return;
 
                 totalVisible += filteredItems.length;
 
                 const catDiv = document.createElement('div');
-                catDiv.className = 'bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-sm';
+                catDiv.className = `bg-white border border-slate-200 border-t-4 ${cat.borderColor} rounded-3xl p-5 shadow-sm`;
 
-                let html = `<h2 class="text-sm font-bold text-orange-500 uppercase tracking-wider mb-4 flex items-center justify-between">
-                    <span>${cat.name}</span>
-                    <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">${filteredItems.length}</span>
-                </h2><div class="space-y-3">`;
+                let html = `<h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-4 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs ${cat.badgeColor}">${cat.name}</span>
+                    </span>
+                    <span class="text-xs bg-slate-100 text-slate-500 font-semibold px-2.5 py-0.5 rounded-full">${filteredItems.length} poz.</span>
+                </h2><div class="space-y-2.5">`;
 
                 filteredItems.forEach(item => {
                     const qty = quantities[item] || 0;
                     const hasMissing = qty > 0;
+                    // Bezpieczne escapowanie apostrofów w nazwach
+                    const safeItem = item.replace(/'/g, "\\'");
 
                     html += `
-                        <div class="flex items-center justify-between p-3 rounded-2xl transition border ${hasMissing ? 'bg-orange-500/10 border-orange-500/30' : 'bg-zinc-950/50 border-zinc-800/80 hover:border-zinc-700'}">
-                            <span class="text-sm font-medium ${hasMissing ? 'text-white font-semibold' : 'text-zinc-300'}">${item}</span>
+                        <div class="flex items-center justify-between p-3 rounded-2xl transition border ${hasMissing ? 'bg-orange-50 border-orange-300' : 'bg-slate-50/70 border-slate-100 hover:border-slate-200'}">
+                            <span class="text-sm font-medium ${hasMissing ? 'text-slate-900 font-bold' : 'text-slate-700'}">${item}</span>
                             <div class="flex items-center gap-2">
-                                <button onclick="changeQty('${item}', -1)" class="w-9 h-9 flex items-center justify-center bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-200 rounded-xl font-bold transition text-base">-</button>
-                                <span class="w-8 text-center font-bold text-sm ${hasMissing ? 'text-orange-400' : 'text-zinc-500'}">${qty}</span>
-                                <button onclick="changeQty('${item}', 1)" class="w-9 h-9 flex items-center justify-center bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-xl font-bold transition text-base">+</button>
+                                <button onclick="changeQty('${safeItem}', -1)" class="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-200 rounded-xl font-bold transition text-base shadow-sm">-</button>
+                                <span class="w-8 text-center font-extrabold text-sm ${hasMissing ? 'text-orange-600' : 'text-slate-400'}">${qty}</span>
+                                <button onclick="changeQty('${safeItem}', 1)" class="w-9 h-9 flex items-center justify-center bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-xl font-bold transition text-base shadow-sm">+</button>
                             </div>
                         </div>
                     `;
@@ -278,7 +371,19 @@
 
         function filterProducts() {
             const val = document.getElementById('searchInput').value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (val.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
             renderProducts(val);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderProducts('');
         }
 
         function updateTotalCount() {
@@ -287,7 +392,7 @@
                 sum += quantities[key];
             }
             const badge = document.getElementById('totalItemsCount');
-            badge.textContent = sum + (sum === 1 ? ' szt. / poz.' : ' szt. / poz.');
+            badge.textContent = sum + ' szt. / poz.';
         }
 
         function resetAllQuantities() {
@@ -298,11 +403,8 @@
             }
         }
 
-        function openSummaryModal() {
-            const modal = document.getElementById('summaryModal');
-            modal.classList.remove('hidden');
-
-            let text = "🚨 **BRAKI MAGAZYNOWE - XTREMEKIDS** 🚨\n";
+        function buildSummaryText() {
+            let text = "🚨 *BRAKI MAGAZYNOWE - XtremeKids* 🚨\n";
             const reporter = document.getElementById('reporterName').value.trim();
             if (reporter) {
                 text += `Zgłasza: ${reporter}\n`;
@@ -327,8 +429,12 @@
             if (!hasAny) {
                 text += "Brak zaznaczonych braków na liście.";
             }
+            return text;
+        }
 
-            document.getElementById('summaryTextOutput').textContent = text;
+        function openSummaryModal() {
+            document.getElementById('summaryModal').classList.remove('hidden');
+            document.getElementById('summaryTextOutput').textContent = buildSummaryText();
             resetConfirmState();
         }
 
@@ -341,14 +447,14 @@
             navigator.clipboard.writeText(text).then(() => {
                 const btn = document.getElementById('copyBtn');
                 btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
                 btn.innerHTML = `
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Skopiowano pomyślnie! Wklej na WhatsApp / Messenger
+                    Skopiowano! Wklej na WhatsApp / Messenger
                 `;
                 document.getElementById('resetConfirmContainer').classList.remove('hidden');
                 setTimeout(() => {
-                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
                     btn.classList.add('bg-orange-500', 'hover:bg-orange-600');
                 }, 3000);
             });
@@ -359,7 +465,7 @@
             const btn = document.getElementById('resetListBtn');
             const btnText = document.getElementById('resetText');
             if (btn && btnText) {
-                btn.className = 'w-full bg-zinc-800 hover:bg-zinc-700 text-rose-400 font-semibold py-3 px-4 rounded-xl transition text-sm border border-zinc-700';
+                btn.className = 'w-full bg-slate-100 hover:bg-red-50 text-red-600 font-bold py-3 px-4 rounded-xl transition text-sm border border-slate-200';
                 btnText.textContent = 'Wyczyść listę po wysłaniu';
             }
         }
@@ -369,19 +475,22 @@
                 isResetConfirming = true;
                 const btn = document.getElementById('resetListBtn');
                 const btnText = document.getElementById('resetText');
-                btn.className = 'w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 px-4 rounded-xl transition text-sm';
+                btn.className = 'w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition text-sm';
                 btnText.textContent = 'Kliknij ponownie, aby potwierdzić wyczyszczenie';
             } else {
                 quantities = {};
                 saveState();
                 closeSummaryModal();
-                renderProducts();
+                renderProducts(document.getElementById('searchInput').value);
             }
         }
 
         function openAddModal() {
             document.getElementById('newProductName').value = '';
             document.getElementById('newProductQty').value = '1';
+            if (selectedCategory !== 'ALL') {
+                document.getElementById('newProductCategory').value = selectedCategory;
+            }
             document.getElementById('addProductModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('newProductName').focus(), 100);
         }
@@ -420,44 +529,19 @@
             quantities[name] = qty;
             saveState();
             closeAddModal();
-            document.getElementById('searchInput').value = '';
+            clearSearch();
             renderProducts();
         }
 
         document.getElementById('reporterName').addEventListener('input', function() {
             const modalOpen = !document.getElementById('summaryModal').classList.contains('hidden');
             if (modalOpen) {
-                let text = "🚨 **BRAKI MAGAZYNOWE - XTREMEKIDS** 🚨\n";
-                const reporter = this.value.trim();
-                if (reporter) {
-                    text += `Zgłasza: ${reporter}\n`;
-                }
-                text += `Data: ${new Date().toLocaleDateString('pl-PL')} ${new Date().toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}\n\n`;
-
-                let hasAny = false;
-                categoriesData.forEach(cat => {
-                    let catItems = [];
-                    cat.items.forEach(item => {
-                        if (quantities[item] && quantities[item] > 0) {
-                            catItems.push(`• ${item}: ${quantities[item]} szt.`);
-                        }
-                    });
-                    if (catItems.length > 0) {
-                        hasAny = true;
-                        text += `📌 *${cat.name}*\n`;
-                        text += catItems.join('\n') + '\n\n';
-                    }
-                });
-
-                if (!hasAny) {
-                    text += "Brak zaznaczonych braków na liście.";
-                }
-
-                document.getElementById('summaryTextOutput').textContent = text;
+                document.getElementById('summaryTextOutput').textContent = buildSummaryText();
             }
         });
 
         loadState();
+        renderCategoryTabs();
         renderProducts();
     </script>
 </body>
